@@ -13,8 +13,9 @@ import org.apache.camel.model.dataformat.JsonDataFormat;
 
 
 public class StudyTask {
-
     public static void main(String[] args) throws Exception {
+        String pathIn = "D:/Development/Project/Files/In";
+        String pathOut = "D:/Development/Project/Files/Test";
         CamelContext camelContext = new DefaultCamelContext();
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
         camelContext.addComponent("jms",JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
@@ -37,25 +38,27 @@ public class StudyTask {
                     }
                         });
 
-                from("file:D:/Development/Project/Files/In?noop=true")
+                 from("file:" + pathIn + "?noop=true")
                 .choice().when (header("CamelFileName").endsWith(".csv"))
                 .unmarshal(csv)
                 .split(body())
+                         .parallelProcessing()
                 .process(new Processor() {
                     public void process(Exchange exchange) throws Exception {
                         Message msg = exchange.getIn();
 
                         List<String> rows = (List<String>)msg.getBody();
                         msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
-
+                        //create json-formatted text
                         ConvertToJson convJson = new ConvertToJson(rows);
 
                         msg.setBody(convJson.resString);
+
                     }
                 })
                 //.marshal(json) //Doesn't work as well as .marshal(csv) for the csv splitted
 
-                .wireTap("file:D:/Development/Project/Files/Test")
+                .wireTap("file:" + pathOut)
 
                 //Exception occurred during execution on the exchange: Exchange[ID-DESKTOP-JD6PL56-1615908974322-0-6]
                 .to("jms:queue:incomingOrders");
