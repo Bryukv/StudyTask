@@ -3,6 +3,8 @@ import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
+
+import java.util.ArrayList;
 import java.util.List;
 import javax.jms.ConnectionFactory;
 import org.apache.camel.model.dataformat.CsvDataFormat;
@@ -50,13 +52,12 @@ public class StudyTask {
                         List<String> rows = (List<String>)msg.getBody();
                         msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
                         //create json-formatted text
-                        ConvertToJson convJson = new ConvertToJson(rows);
-
-                        msg.setBody(convJson.resString);
+                        // ConvertToJson convJson = new ConvertToJson(rows);
+                        //msg.setBody(convJson.resString);
 
                     }
                 })
-                //.marshal(json) //Doesn't work as well as .marshal(csv) for the csv splitted
+                .marshal(json) //  .marshal(csv) doesn't workfor the csv splitted
 
                 .wireTap("file:" + pathOut)
 
