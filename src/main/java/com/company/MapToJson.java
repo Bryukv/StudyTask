@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 public class MapToJson {
     private String uniqueID;
@@ -24,7 +25,9 @@ public class MapToJson {
     public String getProductCode() {
         return productCode;
     }
-    public String getProductName() { return productName; }
+    public String getProductName() {
+        return productName;
+    }
     public Double getPriceWholesale() {
         return priceWholesale;
     }
