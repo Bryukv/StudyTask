@@ -7,15 +7,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.model.dataformat.CsvDataFormat;
+import java.util.HashMap;
 import java.util.List;
 
-public class FileTransport {
-    public FileTransport(CamelContext camelContext) throws Exception {
-        String pathIn = "D:/Development/Project/Files/In";
+public class FileTransportMap {
+    public FileTransportMap(CamelContext camelContext) throws Exception {
+        String pathIn = "D:/Development/Project/Files/In/Map";
         String pathOut = "D:/Development/Project/Files/Test";
 
         JacksonDataFormat jacksonDataFormat = new JacksonDataFormat();
         CsvDataFormat csv = new CsvDataFormat();
+
         csv.setDelimiter(";");
 
         camelContext.addRoutes(new RouteBuilder() {
@@ -41,10 +43,10 @@ public class FileTransport {
                                 List<List<String>> rows = (List<List<String>>)msg.getBody();
                                 List<String> line = rows.get(0);
 
-                                //Set the output file name
-                                msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
-                                //Set the message body as a MapToJson
-                                msg.setBody(new MapToJson(line));
+                                //Setting the output file name
+                                msg.setHeader("CamelFileName", "Map_" + msg.getMessageId() + ".json");
+                                //Set the message body as a HashMap
+                                msg.setBody(setMap(line));
                             }
                         })
                         .marshal(jacksonDataFormat)
@@ -56,4 +58,16 @@ public class FileTransport {
 
     }
 
+    public static HashMap<String, Object> setMap(List<String> line){
+        HashMap<String, Object> hashMap = new HashMap<>();
+
+        hashMap.put("UniqueID",line.get(0));
+        hashMap.put("ProductCode",line.get(1));
+        hashMap.put("ProductName",line.get(2));
+        hashMap.put("PriceWholesale",Double.parseDouble(line.get(3)));
+        hashMap.put("PriceRetail",Double.parseDouble(line.get(4)));
+        hashMap.put("InStock",Integer.parseInt(line.get(5)));
+
+        return hashMap;
+    }
 }

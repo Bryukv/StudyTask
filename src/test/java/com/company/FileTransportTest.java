@@ -27,7 +27,7 @@ public void setMap(){
     expected.put("PriceRetail",126.85);
     expected.put("InStock",218);
     //actual data
-    HashMap<String, Object> actual = FileTransport.setMap(testData);
+    HashMap<String, Object> actual = FileTransportMap.setMap(testData);
     //expected vs actual
     Assert.assertEquals(expected, actual);
 }

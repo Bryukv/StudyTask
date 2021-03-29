@@ -6,17 +6,15 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jackson.JacksonDataFormat;
-import org.apache.camel.model.dataformat.CsvDataFormat;
-import java.util.List;
+import org.apache.camel.dataformat.bindy.csv.BindyCsvDataFormat;
 
-public class FileTransport {
-    public FileTransport(CamelContext camelContext) throws Exception {
-        String pathIn = "D:/Development/Project/Files/In";
+public class FileTransportBindy {
+    public FileTransportBindy(CamelContext camelContext) throws Exception {
+        String pathIn = "D:/Development/Project/Files/In/Bindy";
         String pathOut = "D:/Development/Project/Files/Test";
 
         JacksonDataFormat jacksonDataFormat = new JacksonDataFormat();
-        CsvDataFormat csv = new CsvDataFormat();
-        csv.setDelimiter(";");
+        BindyCsvDataFormat bindy = new BindyCsvDataFormat(com.company.MapBindyToJson.class);
 
         camelContext.addRoutes(new RouteBuilder() {
             @Override
@@ -29,22 +27,18 @@ public class FileTransport {
                                 System.out.println(caused.getMessage());
                             }
                         });
+
                 from("file:" + pathIn + "?noop=true")
 
                         .choice().when (header("CamelFileName").endsWith(".csv"))
                         .split(body().tokenize("\n",1,true))
-                        .unmarshal(csv)
+                        .unmarshal(bindy)
                         .process(new Processor() {
                             @Override
                             public void process(Exchange exchange) throws Exception {
                                 Message msg = exchange.getIn();
-                                List<List<String>> rows = (List<List<String>>)msg.getBody();
-                                List<String> line = rows.get(0);
-
-                                //Set the output file name
-                                msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
-                                //Set the message body as a MapToJson
-                                msg.setBody(new MapToJson(line));
+                                //Setting the output file name
+                                msg.setHeader("CamelFileName", "BindyMap_" + msg.getMessageId() + ".json");
                             }
                         })
                         .marshal(jacksonDataFormat)
