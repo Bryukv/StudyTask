@@ -29,7 +29,7 @@ public class FileMove extends RouteBuilder implements Processor {
     public void configure() throws Exception{
         from("file:" + this.pathIn + "?noop=true")
                 .choice().when (header("CamelFileName").endsWith(".csv"))
-                .split(body().tokenize("\n",1,true)).parallelProcessing()
+                .split(body().tokenize("\n",1,true)).streaming()//.parallelProcessing()
                 .unmarshal(csv)
                 .process(this)
                 .marshal(jacksonDataFormat)
@@ -43,9 +43,9 @@ public class FileMove extends RouteBuilder implements Processor {
         List<String> line = rows.get(0);
 
         this.counter++;
-        String filename = msg.getHeader("CamelFileName").toString().replace(".csv","_" + this.counter + ".json");
+
         //Setting the output file name
-       // msg.setHeader("CamelFileName", "Map_" + msg.getHeader("CamelFileName") + "_" + this.counter + ".json");
+        String filename = msg.getHeader("CamelFileName").toString().replace(".csv","_" + this.counter + ".json");
         msg.setHeader("CamelFileName", filename);
         //Set the message body as a HashMap
         msg.setBody(setMap(line));
