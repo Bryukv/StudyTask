@@ -8,14 +8,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.dataformat.bindy.csv.BindyCsvDataFormat;
 
-public class FileTransportBindy {
+public class FileTransportBindy  implements Processor{
     public FileTransportBindy(CamelContext camelContext) throws Exception {
         String pathIn = "D:/Development/Project/Files/In/Bindy";
         String pathOut = "D:/Development/Project/Files/Test";
 
         JacksonDataFormat jacksonDataFormat = new JacksonDataFormat();
         BindyCsvDataFormat bindy = new BindyCsvDataFormat(com.company.MapBindyToJson.class);
-
+        FileTransportBindy ftb = this;
         camelContext.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -33,14 +33,7 @@ public class FileTransportBindy {
                         .choice().when (header("CamelFileName").endsWith(".csv"))
                         .split(body().tokenize("\n",1,true))
                         .unmarshal(bindy)
-                        .process(new Processor() {
-                            @Override
-                            public void process(Exchange exchange) throws Exception {
-                                Message msg = exchange.getIn();
-                                //Setting the output file name
-                                msg.setHeader("CamelFileName", "BindyMap_" + msg.getMessageId() + ".json");
-                            }
-                        })
+                        .process(ftb)
                         .marshal(jacksonDataFormat)
                         .wireTap("file:" + pathOut)
 
@@ -49,5 +42,10 @@ public class FileTransportBindy {
         });
 
     }
-
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        Message msg = exchange.getIn();
+        //Setting the output file name
+        msg.setHeader("CamelFileName", "BindyMap_" + msg.getMessageId() + ".json");
+    }
 }

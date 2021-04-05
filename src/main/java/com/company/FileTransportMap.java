@@ -10,14 +10,13 @@ import org.apache.camel.model.dataformat.CsvDataFormat;
 import java.util.HashMap;
 import java.util.List;
 
-public class FileTransportMap {
-    public FileTransportMap(CamelContext camelContext) throws Exception {
-        String pathIn = "D:/Development/Project/Files/In/Map";
-        String pathOut = "D:/Development/Project/Files/Test";
+public class FileTransportMap   implements Processor{
+    public FileTransportMap(CamelContext camelContext,String pathIn,String pathOut) throws Exception {
+
 
         JacksonDataFormat jacksonDataFormat = new JacksonDataFormat();
         CsvDataFormat csv = new CsvDataFormat();
-
+        FileTransportMap ftm = this;
         csv.setDelimiter(";");
 
         camelContext.addRoutes(new RouteBuilder() {
@@ -36,19 +35,7 @@ public class FileTransportMap {
                         .choice().when (header("CamelFileName").endsWith(".csv"))
                         .split(body().tokenize("\n",1,true))
                         .unmarshal(csv)
-                        .process(new Processor() {
-                            @Override
-                            public void process(Exchange exchange) throws Exception {
-                                Message msg = exchange.getIn();
-                                List<List<String>> rows = (List<List<String>>)msg.getBody();
-                                List<String> line = rows.get(0);
-
-                                //Setting the output file name
-                                msg.setHeader("CamelFileName", "Map_" + msg.getMessageId() + ".json");
-                                //Set the message body as a HashMap
-                                msg.setBody(setMap(line));
-                            }
-                        })
+                        .process(ftm)
                         .marshal(jacksonDataFormat)
                         .wireTap("file:" + pathOut)
 
@@ -57,7 +44,18 @@ public class FileTransportMap {
         });
 
     }
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        Message msg = exchange.getIn();
+        List<List<String>> rows = (List<List<String>>)msg.getBody();
+        List<String> line = rows.get(0);
 
+        //Setting the output file name
+        msg.setHeader("CamelFileName", "Map_" + msg.getMessageId() + ".json");
+        //Set the message body as a HashMap
+        msg.setBody(setMap(line));
+
+    }
     public static HashMap<String, Object> setMap(List<String> line){
         HashMap<String, Object> hashMap = new HashMap<>();
 

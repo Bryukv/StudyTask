@@ -9,7 +9,7 @@ import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.model.dataformat.CsvDataFormat;
 import java.util.List;
 
-public class FileTransport {
+public class FileTransport  implements Processor {
     public FileTransport(CamelContext camelContext) throws Exception {
         String pathIn = "D:/Development/Project/Files/In";
         String pathOut = "D:/Development/Project/Files/Test";
@@ -17,7 +17,7 @@ public class FileTransport {
         JacksonDataFormat jacksonDataFormat = new JacksonDataFormat();
         CsvDataFormat csv = new CsvDataFormat();
         csv.setDelimiter(";");
-
+        FileTransport ft = this;
         camelContext.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -34,19 +34,7 @@ public class FileTransport {
                         .choice().when (header("CamelFileName").endsWith(".csv"))
                         .split(body().tokenize("\n",1,true))
                         .unmarshal(csv)
-                        .process(new Processor() {
-                            @Override
-                            public void process(Exchange exchange) throws Exception {
-                                Message msg = exchange.getIn();
-                                List<List<String>> rows = (List<List<String>>)msg.getBody();
-                                List<String> line = rows.get(0);
-
-                                //Set the output file name
-                                msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
-                                //Set the message body as a MapToJson
-                                msg.setBody(new MapToJson(line));
-                            }
-                        })
+                        .process(ft)
                         .marshal(jacksonDataFormat)
                         .wireTap("file:" + pathOut)
 
@@ -54,6 +42,17 @@ public class FileTransport {
             }
         });
 
+    }
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        Message msg = exchange.getIn();
+        List<List<String>> rows = (List<List<String>>)msg.getBody();
+        List<String> line = rows.get(0);
+
+        //Set the output file name
+        msg.setHeader("CamelFileName", msg.getMessageId() + ".json");
+        //Set the message body as a MapToJson
+        msg.setBody(new MapToJson(line));
     }
 
 }
