@@ -17,15 +17,15 @@ public class FileMoveTest extends CamelTestSupport {
     }
     @Test
     public void testMoveFile() throws  Exception{
-       // template.sendBodyAndHeader("file:" + this.pathOut,"{\"UniqueID\":\"5ab067d0-dbac-4abd-9413-edabf953edf6\",\"ProductName\":\"BOOSTER KIT\",\"ProductCode\":\"04443-22491\",\"InStock\":218,\"PriceRetail\":126.85,\"PriceWholesale\":112.5}", Exchange.FILE_NAME,"Map_javaFile1.csv_1_test.json");
+
         Thread.sleep(2000);
 
         //Check the existence of the 1st file
-        File target1 = new File(this.pathOut + "\\javaFile1_1.json");
+        File target1 = new File(this.pathOut + "\\javaFile1_5ab067d0-dbac-4abd-9413-edabf953edf6.json");
         assertTrue("The 1st file doesn't exist",target1.exists());
 
         //Check the existence of the 2nd file
-        File target2 = new File(this.pathOut + "\\javaFile1_2.json");
+        File target2 = new File(this.pathOut + "\\javaFile1_5ab067d0-dbac-4abd-9414-edabf953edf6.json");
         assertTrue("The 2nd file doesn't exist",target2.exists());
 
         //Check the content of the 1st file

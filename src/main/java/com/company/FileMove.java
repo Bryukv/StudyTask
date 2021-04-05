@@ -10,6 +10,8 @@ import org.apache.camel.model.dataformat.CsvDataFormat;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FileMove extends RouteBuilder implements Processor {
     String pathIn;
@@ -29,7 +31,7 @@ public class FileMove extends RouteBuilder implements Processor {
     public void configure() throws Exception{
         from("file:" + this.pathIn + "?noop=true")
                 .choice().when (header("CamelFileName").endsWith(".csv"))
-                .split(body().tokenize("\n",1,true)).streaming()//.parallelProcessing()
+                .split(body().tokenize("\n",1,true)).streaming().parallelProcessing()
                 .unmarshal(csv)
                 .process(this)
                 .marshal(jacksonDataFormat)
@@ -43,9 +45,9 @@ public class FileMove extends RouteBuilder implements Processor {
         List<String> line = rows.get(0);
 
         this.counter++;
-
+        //System.out.println("  counter after =" + this.counter  + "   tread " + Thread.currentThread().toString() +"  " + line.get(0));
         //Setting the output file name
-        String filename = msg.getHeader("CamelFileName").toString().replace(".csv","_" + this.counter + ".json");
+        String filename = msg.getHeader("CamelFileName").toString().replace(".csv","_" + line.get(0) + ".json");
         msg.setHeader("CamelFileName", filename);
         //Set the message body as a HashMap
         msg.setBody(setMap(line));
